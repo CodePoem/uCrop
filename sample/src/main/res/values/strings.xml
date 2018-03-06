@@ -42,4 +42,9 @@
     <string name="toast_unexpected_error">Unexpected error</string>
 
     <string name="file_provider_authorities">com.yalantis.ucrop.provider</string>
+
+
+    <string name="good_crop_cancel">取消</string>
+    <string name="goods_make_sure_cro">选取</string>
+    <string name="goods_crop_hint">虚线框区域将作为缩略图展示在菜单</string>
 </resources>

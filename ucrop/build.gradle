@@ -37,5 +37,6 @@ android {
 
 dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.squareup.okhttp3:okhttp:3.8.1'
+    //删减网络功能
+//    compile 'com.squareup.okhttp3:okhttp:3.8.1'
 }

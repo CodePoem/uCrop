@@ -54,6 +54,11 @@ public class UCrop {
     private Bundle mCropOptionsBundle;
 
     /**
+     * 截图目标Activity类
+     */
+    private Class<?> mTargetClazz;
+
+    /**
      * This method creates new Intent builder and sets both source and destination image URIs.
      *
      * @param source      Uri for image to crop
@@ -174,9 +179,22 @@ public class UCrop {
      * @return Intent for {@link UCropActivity}
      */
     public Intent getIntent(@NonNull Context context) {
-        mCropIntent.setClass(context, UCropActivity.class);
+        if (mTargetClazz != null) {
+            mCropIntent.setClass(context, mTargetClazz);
+        } else {
+            mCropIntent.setClass(context, UCropActivity.class);
+        }
         mCropIntent.putExtras(mCropOptionsBundle);
         return mCropIntent;
+    }
+
+    /**
+     * 设置目标Actiivty
+     * @param cls
+     */
+    public UCrop withTargetActivity(Class cls) {
+        this.mTargetClazz = cls;
+        return this;
     }
 
     /**
@@ -256,6 +274,10 @@ public class UCrop {
         public static final String EXTRA_CROP_GRID_COLUMN_COUNT = EXTRA_PREFIX + ".CropGridColumnCount";
         public static final String EXTRA_CROP_GRID_COLOR = EXTRA_PREFIX + ".CropGridColor";
         public static final String EXTRA_CROP_GRID_STROKE_WIDTH = EXTRA_PREFIX + ".CropGridStrokeWidth";
+
+        public static final String EXTRA_SHOW_CROP_THUM_HINTS = EXTRA_PREFIX + ".ShowCropThumbnailHints";
+        public static final String EXTRA_CROP_THUM_HINTS_COLOR = EXTRA_PREFIX + ".CropThumbnailHintsColor";
+        public static final String EXTRA_CROP_THUM_HINTS_STROKE_WIDTH = EXTRA_PREFIX + ".CropThumbnailHintsStrokeWidth";
 
         public static final String EXTRA_TOOL_BAR_COLOR = EXTRA_PREFIX + ".ToolbarColor";
         public static final String EXTRA_STATUS_BAR_COLOR = EXTRA_PREFIX + ".StatusBarColor";
@@ -406,6 +428,27 @@ public class UCrop {
          */
         public void setCropGridStrokeWidth(@IntRange(from = 0) int width) {
             mOptionBundle.putInt(EXTRA_CROP_GRID_STROKE_WIDTH, width);
+        }
+
+        /**
+         * @param show - set to true if you want to see crop thumbnail hints on top of an image
+         */
+        public void setShowCropThumbnailHints(boolean show) {
+            mOptionBundle.putBoolean(EXTRA_SHOW_CROP_THUM_HINTS, show);
+        }
+
+        /**
+         * @param color - desired color of crop thumbnail hints
+         */
+        public void setCropThumbnailHintsColor(@ColorInt int color) {
+            mOptionBundle.putInt(EXTRA_CROP_THUM_HINTS_COLOR, color);
+        }
+
+        /**
+         * @param width - desired width of crop thumbnail hints in pixels
+         */
+        public void setCropThumbnailHintsStrokeWidth(@IntRange(from = 0) int width) {
+            mOptionBundle.putInt(EXTRA_CROP_THUM_HINTS_STROKE_WIDTH, width);
         }
 
         /**

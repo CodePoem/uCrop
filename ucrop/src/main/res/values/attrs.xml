@@ -21,6 +21,10 @@
         <attr name="ucrop_frame_color" format="color"/>
         <attr name="ucrop_show_frame" format="boolean"/>
 
+        <attr name="ucrop_thum_hints_stroke_size" format="dimension"/>
+        <attr name="ucrop_thum_hints_color" format="color"/>
+        <attr name="ucrop_show_thum_hints" format="boolean"/>
+
     </declare-styleable>
 
     <declare-styleable name="ucrop_AspectRatioTextView">

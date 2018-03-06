@@ -200,6 +200,9 @@ public class SampleActivity extends BaseActivity {
         uCrop = basisConfig(uCrop);
         uCrop = advancedConfig(uCrop);
 
+        uCrop.withAspectRatio(5,4);
+        uCrop.withTargetActivity(TDFCropActivity.class);
+
         uCrop.start(SampleActivity.this);
     }
 
@@ -317,6 +320,13 @@ public class SampleActivity extends BaseActivity {
             new AspectRatio("ASPECT", 1, 1));
 
        */
+
+        //不展示网格
+        options.setShowCropGrid(false);
+        //展示缩略图提示线
+        options.setShowCropThumbnailHints(true);
+        //不展示底部高级控制器
+        options.setHideBottomControls(true);
 
         return uCrop.withOptions(options);
     }

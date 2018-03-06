@@ -3,8 +3,10 @@ package com.yalantis.ucrop.view;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PathEffect;
 import android.graphics.RectF;
 import android.graphics.Region;
 import android.os.Build;
@@ -37,6 +39,8 @@ public class OverlayView extends View {
 
     public static final boolean DEFAULT_SHOW_CROP_FRAME = true;
     public static final boolean DEFAULT_SHOW_CROP_GRID = true;
+    //默认关闭缩略图提示线
+    public static final boolean DEFAULT_SHOW_CROP_THUM_HINTS = false;
     public static final boolean DEFAULT_CIRCLE_DIMMED_LAYER = false;
     public static final int DEFAULT_FREESTYLE_CROP_MODE = FREESTYLE_CROP_MODE_DISABLE;
     public static final int DEFAULT_CROP_GRID_ROW_COUNT = 2;
@@ -52,12 +56,14 @@ public class OverlayView extends View {
     private int mCropGridRowCount, mCropGridColumnCount;
     private float mTargetAspectRatio;
     private float[] mGridPoints = null;
-    private boolean mShowCropFrame, mShowCropGrid;
+    private boolean mShowCropFrame, mShowCropGrid, mShowCropThumbnailHints;
     private boolean mCircleDimmedLayer;
     private int mDimmedColor;
     private Path mCircularPath = new Path();
     private Paint mDimmedStrokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mCropGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    //绘制缩略图提示画笔
+    private Paint mCropThumbnailHintsPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mCropFramePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mCropFrameCornersPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     @FreestyleMode
@@ -176,6 +182,15 @@ public class OverlayView extends View {
     }
 
     /**
+     * Setter for {@link #mShowCropThumbnailHints} variable.
+     *
+     * @param showCropThumbnailHints - set to true if you want to see tumbnail hints on top of an image
+     */
+    public void setShowCropThumbnailHints(boolean showCropThumbnailHints) {
+        mShowCropThumbnailHints = showCropThumbnailHints;
+    }
+
+    /**
      * Setter for {@link #mDimmedColor} variable.
      *
      * @param dimmedColor - desired color of dimmed area around the crop bounds
@@ -199,6 +214,14 @@ public class OverlayView extends View {
     }
 
     /**
+     * 设置绘制缩略图提示画笔宽度
+     * @param width 绘制缩略图提示画笔宽度
+     */
+    public void setCropThumbnailHintsStrokeWidth(@IntRange(from = 0) int width){
+        mCropThumbnailHintsPaint.setStrokeWidth(width);
+    }
+
+    /**
      * Setter for crop frame color
      */
     public void setCropFrameColor(@ColorInt int color) {
@@ -210,6 +233,14 @@ public class OverlayView extends View {
      */
     public void setCropGridColor(@ColorInt int color) {
         mCropGridPaint.setColor(color);
+    }
+
+    /**
+     * 设置绘制缩略图提示画笔颜色
+     * @param color 绘制缩略图提示画颜色
+     */
+    public void setCropThumbnailHintsColor(@ColorInt int color){
+        mCropThumbnailHintsPaint.setColor(color);
     }
 
     /**
@@ -294,6 +325,8 @@ public class OverlayView extends View {
         super.onDraw(canvas);
         drawDimmedLayer(canvas);
         drawCropGrid(canvas);
+        //绘制缩略图提示
+        drawThumbnailHints(canvas);
     }
 
     @Override
@@ -515,6 +548,35 @@ public class OverlayView extends View {
     }
 
     /**
+     * 绘制缩略图提示
+     * @param canvas - valid canvas object
+     */
+    protected void drawThumbnailHints(@NonNull Canvas canvas){
+        if (mShowCropThumbnailHints){
+            Path path = new Path();
+
+            float index = (mCropViewRect.width() - mCropViewRect.height()) / 2.0f;
+            float startX = mCropViewRect.left + index;
+            float startY = mCropViewRect.top;
+            float endX = mCropViewRect.left + index;
+            float endY = mCropViewRect.bottom;
+
+            path.moveTo(startX, startY);
+            path.lineTo(endX, endY);
+
+            startX = mCropViewRect.right - index;
+            startY = mCropViewRect.top;
+            endX = mCropViewRect.right - index;
+            endY = mCropViewRect.bottom;
+
+            path.moveTo(startX, startY);
+            path.lineTo(endX, endY);
+
+            canvas.drawPath(path, mCropThumbnailHintsPaint);
+        }
+    }
+
+    /**
      * This method extracts all needed values from the styled attributes.
      * Those are used to configure the view.
      */
@@ -532,6 +594,10 @@ public class OverlayView extends View {
 
         initCropGridStyle(a);
         mShowCropGrid = a.getBoolean(R.styleable.ucrop_UCropView_ucrop_show_grid, DEFAULT_SHOW_CROP_GRID);
+
+        //初始化缩略图提示风格
+        initThumbnailHintsStyle(a);
+        mShowCropThumbnailHints = a.getBoolean(R.styleable.ucrop_UCropView_ucrop_show_thum_hints, DEFAULT_SHOW_CROP_THUM_HINTS);
     }
 
     /**
@@ -566,6 +632,22 @@ public class OverlayView extends View {
 
         mCropGridRowCount = a.getInt(R.styleable.ucrop_UCropView_ucrop_grid_row_count, DEFAULT_CROP_GRID_ROW_COUNT);
         mCropGridColumnCount = a.getInt(R.styleable.ucrop_UCropView_ucrop_grid_column_count, DEFAULT_CROP_GRID_COLUMN_COUNT);
+    }
+
+    /**
+     * 初始化缩略图提示风格
+     */
+    @SuppressWarnings("deprecation")
+    private void initThumbnailHintsStyle(@NonNull TypedArray a){
+        int thumbnailHintsStrokeSize = a.getDimensionPixelSize(R.styleable.ucrop_UCropView_ucrop_thum_hints_stroke_size,
+                getResources().getDimensionPixelSize(R.dimen.ucrop_default_crop_grid_stoke_width));
+        int thumbnailHintsColor = a.getColor(R.styleable.ucrop_UCropView_ucrop_thum_hints_color,
+                getResources().getColor(R.color.ucrop_color_default_crop_grid));
+        mCropThumbnailHintsPaint.setStrokeWidth(thumbnailHintsStrokeSize);
+        mCropThumbnailHintsPaint.setColor(thumbnailHintsColor);
+        mCropThumbnailHintsPaint.setStyle(Paint.Style.STROKE);
+        PathEffect pathEffect = new DashPathEffect(new float[]{20, 10, 5, 10}, 0);
+        mCropThumbnailHintsPaint.setPathEffect(pathEffect);
     }
 
 
