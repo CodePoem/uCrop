@@ -2,11 +2,20 @@ package com.yalantis.ucrop.model;
 
 /**
  * Created by Oleksii Shliama [https://github.com/shliama] on 6/21/16.
+ * 图像信息
  */
 public class ExifInfo {
-
+    /**
+     * 图像方向
+     */
     private int mExifOrientation;
+    /**
+     * 图像旋转度数
+     */
     private int mExifDegrees;
+    /**
+     * 图像变换
+     */
     private int mExifTranslation;
 
     public ExifInfo(int exifOrientation, int exifDegrees, int exifTranslation) {

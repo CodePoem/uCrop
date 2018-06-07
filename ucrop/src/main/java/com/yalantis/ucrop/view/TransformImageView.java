@@ -24,34 +24,76 @@ import com.yalantis.ucrop.util.RectUtils;
  * <p/>
  * This class provides base logic to setup the image, transform it with matrix (move, scale, rotate),
  * and methods to get current matrix state.
+ * 这个类提供了设置图片的基础逻辑，包括了使用矩阵变换（平移、缩放、旋转）和获取当前矩阵状态的方法
  */
 public class TransformImageView extends ImageView {
 
     private static final String TAG = "TransformImageView";
 
+    /**
+     * 矩形四个角坐标表示个数（横坐标纵坐标各算一个） 2*4
+     */
     private static final int RECT_CORNER_POINTS_COORDS = 8;
+    /**
+     * 矩形中心坐标表示个数（横坐标纵坐标各算一个）
+     */
     private static final int RECT_CENTER_POINT_COORDS = 2;
+    /**
+     * 矩阵表示的值总数 3*3
+     * 齐次坐标系，用高一维来表示点，可以做到将一个点的平移（加法）也表示进去
+     */
     private static final int MATRIX_VALUES_COUNT = 9;
-
+    /**
+     * 当前图片四个角坐标数组
+     */
     protected final float[] mCurrentImageCorners = new float[RECT_CORNER_POINTS_COORDS];
+    /**
+     * 当前图片中心坐标数组
+     */
     protected final float[] mCurrentImageCenter = new float[RECT_CENTER_POINT_COORDS];
-
+    /**
+     * 矩阵值数组
+     */
     private final float[] mMatrixValues = new float[MATRIX_VALUES_COUNT];
-
+    /**
+     * 当前图片矩阵
+     */
     protected Matrix mCurrentImageMatrix = new Matrix();
+    /**
+     * 当前布局实际内容（除去padding）宽度，高度
+     */
     protected int mThisWidth, mThisHeight;
-
+    /**
+     * 图片变换监听器
+     */
     protected TransformImageListener mTransformImageListener;
-
+    /**
+     * 初始化图片角坐标数组
+     */
     private float[] mInitialImageCorners;
+    /**
+     * 初始化图片中心坐标数组
+     */
     private float[] mInitialImageCenter;
-
+    /**
+     * 位图编码状态 true已编码 false未编码
+     */
     protected boolean mBitmapDecoded = false;
+    /**
+     * 位图铺平状态 true已铺平 false未铺平
+     */
     protected boolean mBitmapLaidOut = false;
-
+    /**
+     * 位图最大大小
+     */
     private int mMaxBitmapSize = 0;
-
+    /**
+     * 图片输入路径、输出路径
+     */
     private String mImageInputPath, mImageOutputPath;
+    /**
+     * 图像信息
+     */
     private ExifInfo mExifInfo;
 
     /**
