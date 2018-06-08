@@ -110,12 +110,15 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
         }
 
         final BitmapFactory.Options options = new BitmapFactory.Options();
+        // inJustDecodeBounds :如果设置为true则表示decode函数不会生成bitmap对象，
+        // 仅是将图像相关的参数填充到option对象里，
+        // 这样我们就可以在不生成bitmap而获取到图像的相关参数了。
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
         if (options.outWidth == -1 || options.outHeight == -1) {
             return new BitmapWorkerResult(new IllegalArgumentException("Bounds for bitmap could not be retrieved from the Uri: [" + mInputUri + "]"));
         }
-
+        // inSampleSize:表示对图像像素的缩放比例。假设值为2，表示decode后的图像的像素为原图像的1/2。
         options.inSampleSize = BitmapLoadUtils.calculateInSampleSize(options, mRequiredWidth, mRequiredHeight);
         options.inJustDecodeBounds = false;
 
