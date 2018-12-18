@@ -84,9 +84,12 @@ public class UCropActivity extends AppCompatActivity {
     private int mStatusBarColor;
     private int mActiveWidgetColor;
     private int mToolbarWidgetColor;
-    @ColorInt private int mRootViewBackgroundColor;
-    @DrawableRes private int mToolbarCancelDrawable;
-    @DrawableRes private int mToolbarCropDrawable;
+    @ColorInt
+    private int mRootViewBackgroundColor;
+    @DrawableRes
+    private int mToolbarCancelDrawable;
+    @DrawableRes
+    private int mToolbarCropDrawable;
     private int mLogoColor;
 
     private boolean mShowBottomControls;
@@ -286,19 +289,19 @@ public class UCropActivity extends AppCompatActivity {
         initiateRootViews();
 
         if (mShowBottomControls) {
-            ViewGroup photoBox = (ViewGroup) findViewById(R.id.ucrop_photobox);
+            ViewGroup photoBox = findViewById(R.id.ucrop_photobox);
             View.inflate(this, R.layout.ucrop_controls, photoBox);
 
-            mWrapperStateAspectRatio = (ViewGroup) findViewById(R.id.state_aspect_ratio);
+            mWrapperStateAspectRatio = findViewById(R.id.state_aspect_ratio);
             mWrapperStateAspectRatio.setOnClickListener(mStateClickListener);
-            mWrapperStateRotate = (ViewGroup) findViewById(R.id.state_rotate);
+            mWrapperStateRotate = findViewById(R.id.state_rotate);
             mWrapperStateRotate.setOnClickListener(mStateClickListener);
-            mWrapperStateScale = (ViewGroup) findViewById(R.id.state_scale);
+            mWrapperStateScale = findViewById(R.id.state_scale);
             mWrapperStateScale.setOnClickListener(mStateClickListener);
 
-            mLayoutAspectRatio = (ViewGroup) findViewById(R.id.layout_aspect_ratio);
-            mLayoutRotate = (ViewGroup) findViewById(R.id.layout_rotate_wheel);
-            mLayoutScale = (ViewGroup) findViewById(R.id.layout_scale_wheel);
+            mLayoutAspectRatio = findViewById(R.id.layout_aspect_ratio);
+            mLayoutRotate = findViewById(R.id.layout_rotate_wheel);
+            mLayoutScale = findViewById(R.id.layout_scale_wheel);
 
             setupAspectRatioWidget(intent);
             setupRotateWidget();
@@ -313,13 +316,13 @@ public class UCropActivity extends AppCompatActivity {
     private void setupAppBar() {
         setStatusBarColor(mStatusBarColor);
 
-        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        final Toolbar toolbar = findViewById(R.id.toolbar);
 
         // Set all of the Toolbar coloring
         toolbar.setBackgroundColor(mToolbarColor);
         toolbar.setTitleTextColor(mToolbarWidgetColor);
 
-        final TextView toolbarTitle = (TextView) toolbar.findViewById(R.id.toolbar_title);
+        final TextView toolbarTitle = toolbar.findViewById(R.id.toolbar_title);
         toolbarTitle.setTextColor(mToolbarWidgetColor);
         toolbarTitle.setText(mToolbarTitle);
 
@@ -336,7 +339,7 @@ public class UCropActivity extends AppCompatActivity {
     }
 
     private void initiateRootViews() {
-        mUCropView = (UCropView) findViewById(R.id.ucrop);
+        mUCropView = findViewById(R.id.ucrop);
         mGestureCropImageView = mUCropView.getCropImageView();
         mOverlayView = mUCropView.getOverlayView();
 
@@ -378,9 +381,9 @@ public class UCropActivity extends AppCompatActivity {
      * Use {@link #mActiveWidgetColor} for color filter
      */
     private void setupStatesWrapper() {
-        ImageView stateScaleImageView = (ImageView) findViewById(R.id.image_view_state_scale);
-        ImageView stateRotateImageView = (ImageView) findViewById(R.id.image_view_state_rotate);
-        ImageView stateAspectRatioImageView = (ImageView) findViewById(R.id.image_view_state_aspect_ratio);
+        ImageView stateScaleImageView = findViewById(R.id.image_view_state_scale);
+        ImageView stateRotateImageView = findViewById(R.id.image_view_state_rotate);
+        ImageView stateAspectRatioImageView = findViewById(R.id.image_view_state_aspect_ratio);
 
         stateScaleImageView.setImageDrawable(new SelectedStateListDrawable(stateScaleImageView.getDrawable(), mActiveWidgetColor));
         stateRotateImageView.setImageDrawable(new SelectedStateListDrawable(stateRotateImageView.getDrawable(), mActiveWidgetColor));
@@ -421,7 +424,7 @@ public class UCropActivity extends AppCompatActivity {
             aspectRatioList.add(new AspectRatio(null, 16, 9));
         }
 
-        LinearLayout wrapperAspectRatioList = (LinearLayout) findViewById(R.id.layout_aspect_ratio);
+        LinearLayout wrapperAspectRatioList = findViewById(R.id.layout_aspect_ratio);
 
         FrameLayout wrapperAspectRatio;
         AspectRatioTextView aspectRatioTextView;
@@ -458,7 +461,7 @@ public class UCropActivity extends AppCompatActivity {
     }
 
     private void setupRotateWidget() {
-        mTextViewRotateAngle = ((TextView) findViewById(R.id.text_view_rotate));
+        mTextViewRotateAngle = findViewById(R.id.text_view_rotate);
         ((HorizontalProgressWheelView) findViewById(R.id.rotate_scroll_wheel))
                 .setScrollingListener(new HorizontalProgressWheelView.ScrollingListener() {
                     @Override
@@ -495,7 +498,7 @@ public class UCropActivity extends AppCompatActivity {
     }
 
     private void setupScaleWidget() {
-        mTextViewScalePercent = ((TextView) findViewById(R.id.text_view_scale));
+        mTextViewScalePercent = findViewById(R.id.text_view_scale);
         ((HorizontalProgressWheelView) findViewById(R.id.scale_scroll_wheel))
                 .setScrollingListener(new HorizontalProgressWheelView.ScrollingListener() {
                     @Override
