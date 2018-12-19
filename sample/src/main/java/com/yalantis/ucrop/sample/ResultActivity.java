@@ -1,6 +1,8 @@
 package com.yalantis.ucrop.sample;
 
 import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -10,6 +12,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -41,6 +44,7 @@ import static android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 public class ResultActivity extends BaseActivity {
 
     private static final String TAG = "ResultActivity";
+    private static final String CHANNEL_ID = "3000";
     private static final int DOWNLOAD_NOTIFICATION_ID_DONE = 911;
 
     public static void startWithUri(@NonNull Context context, @NonNull Uri uri) {
@@ -53,18 +57,19 @@ public class ResultActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
-
-        try {
-            UCropView uCropView = (UCropView) findViewById(R.id.ucrop);
-            uCropView.getCropImageView().setImageUri(getIntent().getData(), null);
-            uCropView.getOverlayView().setShowCropFrame(false);
-            uCropView.getOverlayView().setShowCropGrid(false);
-            uCropView.getOverlayView().setDimmedColor(Color.TRANSPARENT);
-        } catch (Exception e) {
-            Log.e(TAG, "setImageUri", e);
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        Uri uri = getIntent().getData();
+        if (uri != null) {
+            try {
+                UCropView uCropView = findViewById(R.id.ucrop);
+                uCropView.getCropImageView().setImageUri(uri, null);
+                uCropView.getOverlayView().setShowCropFrame(false);
+                uCropView.getOverlayView().setShowCropGrid(false);
+                uCropView.getOverlayView().setDimmedColor(Color.TRANSPARENT);
+            } catch (Exception e) {
+                Log.e(TAG, "setImageUri", e);
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+            }
         }
-
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(new File(getIntent().getData().getPath()).getAbsolutePath(), options);
@@ -146,6 +151,8 @@ public class ResultActivity extends BaseActivity {
         outStream.close();
 
         showNotification(saveFile);
+        Toast.makeText(this, R.string.notification_image_saved, Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     private void showNotification(@NonNull File file) {
@@ -161,15 +168,25 @@ public class ResultActivity extends BaseActivity {
         List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(
                 intent,
                 PackageManager.MATCH_DEFAULT_ONLY);
-        for(ResolveInfo info: resInfoList) {
+        for (ResolveInfo info : resInfoList) {
             grantUriPermission(
                     info.activityInfo.packageName,
                     fileUri, FLAG_GRANT_WRITE_URI_PERMISSION | FLAG_GRANT_READ_URI_PERMISSION);
         }
 
-        NotificationCompat.Builder mNotification = new NotificationCompat.Builder(this);
+        NotificationCompat.Builder notificationBuilder;
+        NotificationManager notificationManager = (NotificationManager) this
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(createChannel());
+            }
+            notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
+        } else {
+            notificationBuilder = new NotificationCompat.Builder(this);
+        }
 
-        mNotification
+        notificationBuilder
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(getString(R.string.notification_image_saved_click_to_preview))
                 .setTicker(getString(R.string.notification_image_saved))
@@ -177,7 +194,19 @@ public class ResultActivity extends BaseActivity {
                 .setOngoing(false)
                 .setContentIntent(PendingIntent.getActivity(this, 0, intent, 0))
                 .setAutoCancel(true);
-        ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).notify(DOWNLOAD_NOTIFICATION_ID_DONE, mNotification.build());
+        if (notificationManager != null) {
+            notificationManager.notify(DOWNLOAD_NOTIFICATION_ID_DONE, notificationBuilder.build());
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    public NotificationChannel createChannel() {
+        int importance = NotificationManager.IMPORTANCE_LOW;
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, getString(R.string.channel_name), importance);
+        channel.setDescription(getString(R.string.channel_description));
+        channel.enableLights(true);
+        channel.setLightColor(Color.YELLOW);
+        return channel;
     }
 
 }
