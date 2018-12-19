@@ -20,8 +20,8 @@
         android:id="@+id/ucrop_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/tv_crop_hint"
         android:layout_above="@+id/iv_rotate_ninety"
+        android:layout_below="@+id/tv_crop_hint"
         android:background="@color/ucrop_color_crop_background">
 
         <ImageView
@@ -45,9 +45,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/tv_cancel"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        android:src="@drawable/ucrop_ic_angle" />
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="16dp"
+        android:src="@drawable/custom_ui_ico_rotate_ninety" />
 
     <TextView
         android:id="@+id/tv_cancel"

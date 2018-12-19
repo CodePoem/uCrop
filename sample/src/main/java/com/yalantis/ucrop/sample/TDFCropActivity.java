@@ -116,7 +116,7 @@ public class TDFCropActivity extends AppCompatActivity {
     }
 
     /**
-     * This method extracts {@link com.yalantis.ucrop.UCrop.Options #optionsBundle} from incoming intent
+     * This method extracts {@link UCrop.Options #optionsBundle} from incoming intent
      * and setups Activity, {@link OverlayView} and {@link CropImageView} properly.
      */
     @SuppressWarnings("deprecation")
@@ -202,11 +202,6 @@ public class TDFCropActivity extends AppCompatActivity {
      */
     private void setupAppBar() {
         setStatusBarColor(mStatusBarColor);
-
-//        final ActionBar actionBar = getSupportActionBar();
-//        if (actionBar != null) {
-//            actionBar.setDisplayShowTitleEnabled(false);
-//        }
     }
 
     private void setBottomViews() {
@@ -228,19 +223,20 @@ public class TDFCropActivity extends AppCompatActivity {
         mImageViewRotateNinety.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                rotateByAngle(90);
+                rotateByAngle(-90);
             }
         });
     }
 
     private void initiateRootViews() {
-        mUCropView = (UCropView) findViewById(com.yalantis.ucrop.R.id.ucrop);
+
+        mUCropView = (UCropView) findViewById(R.id.ucrop);
         mGestureCropImageView = mUCropView.getCropImageView();
         mOverlayView = mUCropView.getOverlayView();
 
         mGestureCropImageView.setTransformImageListener(mImageListener);
 
-        findViewById(com.yalantis.ucrop.R.id.ucrop_frame).setBackgroundColor(mRootViewBackgroundColor);
+        findViewById(R.id.ucrop_frame).setBackgroundColor(mRootViewBackgroundColor);
     }
 
     private TransformImageView.TransformImageListener mImageListener = new TransformImageView.TransformImageListener() {
@@ -293,7 +289,8 @@ public class TDFCropActivity extends AppCompatActivity {
     }
 
     private void setInitialState() {
-        setAllowedGestures(0);
+        // 平移，缩放+旋转手势
+        setAllowedGestures(2);
     }
 
     private void setAllowedGestures(int tab) {
@@ -302,15 +299,15 @@ public class TDFCropActivity extends AppCompatActivity {
     }
 
     /**
-     * Adds view that covers everything below the Toolbar.
-     * When it's clickable - user won't be able to click/touch anything below the Toolbar.
+     * Adds view that covers everything below the CropHint.
+     * When it's clickable - user won't be able to click/touch anything below the CropHint.
      * Need to block user input while loading and cropping an image.
      */
     private void addBlockingView() {
         if (mBlockingView == null) {
             mBlockingView = new View(this);
             RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-            lp.addRule(RelativeLayout.BELOW, com.yalantis.ucrop.R.id.toolbar);
+            lp.addRule(RelativeLayout.BELOW, R.id.tv_crop_hint);
             mBlockingView.setLayoutParams(lp);
             mBlockingView.setClickable(true);
         }

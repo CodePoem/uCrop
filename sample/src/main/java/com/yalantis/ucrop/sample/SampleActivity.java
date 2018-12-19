@@ -264,11 +264,13 @@ public class SampleActivity extends BaseActivity implements UCropFragmentCallbac
         uCrop = advancedConfig(uCrop);
 
         uCrop.withAspectRatio(5,4);
-        uCrop.withTargetActivity(TDFCropActivity.class)
+        uCrop.withTargetActivity(TDFCropActivity.class);
 
-        if (requestMode == REQUEST_SELECT_PICTURE_FOR_FRAGMENT) {       //if build variant = fragment
+        if (requestMode == REQUEST_SELECT_PICTURE_FOR_FRAGMENT) {
+            // if build variant = fragment
             setupFragment(uCrop);
-        } else {                                                        // else start uCrop Activity
+        } else {
+            // else start uCrop Activity
             uCrop.start(SampleActivity.this);
         }
 
