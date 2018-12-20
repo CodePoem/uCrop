@@ -98,6 +98,7 @@ public class TransformImageView extends ImageView {
 
     /**
      * Interface for rotation and scale change notifying.
+     * 旋转、缩放接口回调
      */
     public interface TransformImageListener {
 
@@ -124,10 +125,18 @@ public class TransformImageView extends ImageView {
         init();
     }
 
+    /**
+     * 设置图片变换监听器
+     * @param transformImageListener 图片变换监听器
+     */
     public void setTransformImageListener(TransformImageListener transformImageListener) {
         mTransformImageListener = transformImageListener;
     }
 
+    /**
+     * 复写setScaleType这个方法是是为了保证传入的scaleType一定是ScaleType.MATRI
+     * @param scaleType 图片的测量类型scaleType
+     */
     @Override
     public void setScaleType(ScaleType scaleType) {
         if (scaleType == ScaleType.MATRIX) {
@@ -140,6 +149,8 @@ public class TransformImageView extends ImageView {
     /**
      * Setter for {@link #mMaxBitmapSize} value.
      * Be sure to call it before {@link #setImageURI(Uri)} or other image setters.
+     * 设置最大位图大小值。
+     * 确保在setImageURI(Uri)方法或者其他设置图片源的方法前调用。
      *
      * @param maxBitmapSize - max size for both width and height of bitmap that will be used in the view.
      */
@@ -154,6 +165,10 @@ public class TransformImageView extends ImageView {
         return mMaxBitmapSize;
     }
 
+    /**
+     * 复写setImageBitmap是为了包一层自己写的FastBitmapDrawable
+     * @param bitmap 图片位图
+     */
     @Override
     public void setImageBitmap(final Bitmap bitmap) {
         setImageDrawable(new FastBitmapDrawable(bitmap));
@@ -173,9 +188,11 @@ public class TransformImageView extends ImageView {
 
     /**
      * This method takes an Uri as a parameter, then calls method to decode it into Bitmap with specified size.
+     * 这个方法需要一个Uri的参数（表示图片源），将图片编码成特定大小的位图。
      *
      * @param imageUri - image Uri
      * @throws Exception - can throw exception if having problems with decoding Uri or OOM.
+     * 如果在对Uri编码过程中出现问题或者内存溢出会向外抛出异常。
      */
     public void setImageUri(@NonNull Uri imageUri, @Nullable Uri outputUri) throws Exception {
         int maxBitmapSize = getMaxBitmapSize();
@@ -204,6 +221,7 @@ public class TransformImageView extends ImageView {
     }
 
     /**
+     * 获取当前图片缩放比例 1.0f表示原图大小 2.0f表示原图放大2倍
      * @return - current image scale value.
      * [1.0f - for original image, 2.0f - for 200% scaled image, etc.]
      */
@@ -212,6 +230,7 @@ public class TransformImageView extends ImageView {
     }
 
     /**
+     * 根据矩阵对象计算当前图片缩放比例
      * This method calculates scale value for given Matrix object.
      */
     public float getMatrixScale(@NonNull Matrix matrix) {
@@ -220,6 +239,7 @@ public class TransformImageView extends ImageView {
     }
 
     /**
+     * 获取当前图片旋转角度
      * @return - current image rotation angle.
      */
     public float getCurrentAngle() {
@@ -227,6 +247,7 @@ public class TransformImageView extends ImageView {
     }
 
     /**
+     *  根据矩阵对象计算当前图片旋转角度
      * This method calculates rotation angle for given Matrix object.
      */
     public float getMatrixAngle(@NonNull Matrix matrix) {
@@ -252,9 +273,9 @@ public class TransformImageView extends ImageView {
 
     /**
      * This method translates current image.
-     *
-     * @param deltaX - horizontal shift
-     * @param deltaY - vertical shift
+     * 通过矩阵平移图片
+     * @param deltaX - horizontal shift 水平位移
+     * @param deltaY - vertical shift 竖直位移
      */
     public void postTranslate(float deltaX, float deltaY) {
         if (deltaX != 0 || deltaY != 0) {
@@ -265,10 +286,10 @@ public class TransformImageView extends ImageView {
 
     /**
      * This method scales current image.
-     *
-     * @param deltaScale - scale value
-     * @param px         - scale center X
-     * @param py         - scale center Y
+     * 通过矩阵缩放图片
+     * @param deltaScale - scale value 缩放比例
+     * @param px         - scale center X 缩放中心x坐标值
+     * @param py         - scale center Y 缩放中心y左边值
      */
     public void postScale(float deltaScale, float px, float py) {
         if (deltaScale != 0) {
@@ -282,10 +303,10 @@ public class TransformImageView extends ImageView {
 
     /**
      * This method rotates current image.
-     *
-     * @param deltaAngle - rotation angle
-     * @param px         - rotation center X
-     * @param py         - rotation center Y
+     * 通过矩阵旋转图片
+     * @param deltaAngle - rotation angle 旋转角度
+     * @param px         - rotation center X 旋转中心中心x坐标值
+     * @param py         - rotation center Y 旋转中心y左边值
      */
     public void postRotate(float deltaAngle, float px, float py) {
         if (deltaAngle != 0) {
@@ -297,7 +318,11 @@ public class TransformImageView extends ImageView {
         }
     }
 
+    /**
+     * 初始化
+     */
     protected void init() {
+        // 设置图片测量类型为矩阵类型
         setScaleType(ScaleType.MATRIX);
     }
 
@@ -320,6 +345,7 @@ public class TransformImageView extends ImageView {
     /**
      * When image is laid out {@link #mInitialImageCenter} and {@link #mInitialImageCenter}
      * must be set.
+     * 当图片铺平的时候一定会被调用，初始化图片四个角和中心坐标数组
      */
     protected void onImageLaidOut() {
         final Drawable drawable = getDrawable();
@@ -345,6 +371,7 @@ public class TransformImageView extends ImageView {
 
     /**
      * This method returns Matrix value for given index.
+     * 这个方法返回矩阵中对应给定的索引的值
      *
      * @param matrix     - valid Matrix object
      * @param valueIndex - index of needed value. See {@link Matrix#MSCALE_X} and others.
@@ -358,6 +385,8 @@ public class TransformImageView extends ImageView {
     /**
      * This method logs given matrix X, Y, scale, and angle values.
      * Can be used for debug.
+     * 这个方法用于打印矩阵的MTRANS_X、MTRANS_Y、缩放比例、旋转角度。
+     * 可用于调试。
      */
     @SuppressWarnings("unused")
     protected void printMatrix(@NonNull String logPrefix, @NonNull Matrix matrix) {
@@ -370,6 +399,7 @@ public class TransformImageView extends ImageView {
 
     /**
      * This method updates current image corners and center points that are stored in
+     * 这个方法更新矩阵中存储的图片的四个角和中心点坐标
      * {@link #mCurrentImageCorners} and {@link #mCurrentImageCenter} arrays.
      * Those are used for several calculations.
      */

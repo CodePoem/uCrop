@@ -24,6 +24,11 @@ public class EglUtils {
 
     }
 
+    /**
+     * 获取最大纹理尺寸
+     * 适配api等级14+ 17为界限 [14,17)实现为getMaxTextureEgl14方法 [17,+)实现为getMaxTextureEgl10方法
+     * @return 最大纹理尺寸
+     */
     public static int getMaxTextureSize() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {

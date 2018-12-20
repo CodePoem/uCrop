@@ -40,6 +40,9 @@ import okio.Sink;
  * Creates and returns a Bitmap for a given Uri(String url).
  * inSampleSize is calculated based on requiredWidth property. However can be adjusted if OOM occurs.
  * If any EXIF config is found - bitmap is transformed properly.
+ * 通过给定的图片Uri(String 类型的 url)创建位图并返回。
+ * 对图像的缩放比例是由要求的宽度属性计算而来的，但是如果发生了内存溢出也会被调整。
+ * 只要找到任何图像信息配置，位图就能正确转换。
  */
 public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapWorkerResult> {
 
@@ -53,10 +56,22 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
 
     private final BitmapLoadCallback mBitmapLoadCallback;
 
+    /**
+     * 加载位图结果集合
+     */
     public static class BitmapWorkerResult {
 
+        /**
+         * 位图结果
+         */
         Bitmap mBitmapResult;
+        /**
+         * 图像信息
+         */
         ExifInfo mExifInfo;
+        /**
+         * 异常信息
+         */
         Exception mBitmapWorkerException;
 
         public BitmapWorkerResult(@NonNull Bitmap bitmapResult, @NonNull ExifInfo exifInfo) {
@@ -131,6 +146,7 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
                 decodeAttemptSuccess = true;
             } catch (OutOfMemoryError error) {
                 Log.e(TAG, "doInBackground: BitmapFactory.decodeFileDescriptor: ", error);
+                // 内存失败 将inSampleSize乘2 缩小图像像素
                 options.inSampleSize *= 2;
             }
         }
@@ -139,6 +155,7 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
             return new BitmapWorkerResult(new IllegalArgumentException("Bitmap could not be decoded from the Uri: [" + mInputUri + "]"));
         }
 
+        // TODO 这里为什么只有Api>=17 才close parcelFileDescriptor
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             BitmapLoadUtils.close(parcelFileDescriptor);
         }
@@ -163,10 +180,17 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
         return new BitmapWorkerResult(decodeSampledBitmap, exifInfo);
     }
 
+    /**
+     * 处理输入Uri
+     * @throws NullPointerException 可能抛出空指针异常
+     * @throws IOException 可能抛出IO异常
+     */
     private void processInputUri() throws NullPointerException, IOException {
         String inputUriScheme = mInputUri.getScheme();
         Log.d(TAG, "Uri scheme: " + inputUriScheme);
+        // 根据scheme来判断 做相应处理
         if ("http".equals(inputUriScheme) || "https".equals(inputUriScheme)) {
+            // scheme为"http" "https"的，说明是网络图片，尝试下载
             try {
                 downloadFile(mInputUri, mOutputUri);
             } catch (NullPointerException | IOException e) {
@@ -174,10 +198,13 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
                 throw e;
             }
         } else if ("content".equals(inputUriScheme)) {
+            // scheme为"content" 说明是本地图片
             String path = getFilePath();
             if (!TextUtils.isEmpty(path) && new File(path).exists()) {
+                // 解析输入Uri成文件路径成功且文件路径存在
                 mInputUri = Uri.fromFile(new File(path));
             } else {
+                // 解析输入Uri成文件路径失败或者文件路径不存在，触发兜底操作
                 try {
                     copyFile(mInputUri, mOutputUri);
                 } catch (NullPointerException | IOException e) {
@@ -186,12 +213,18 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
                 }
             }
         } else if (!"file".equals(inputUriScheme)) {
+            // scheme不为"file" 不支持
             Log.e(TAG, "Invalid Uri scheme " + inputUriScheme);
             throw new IllegalArgumentException("Invalid Uri scheme" + inputUriScheme);
         }
     }
 
+    /**
+     * 获取文件路径
+     * @return 文件路径
+     */
     private String getFilePath() {
+        // 判断是否有读取外部存储权限
         if (ContextCompat.checkSelfPermission(mContext, permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED) {
             return FileUtils.getPath(mContext, mInputUri);
@@ -200,6 +233,13 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
         }
     }
 
+    /**
+     * 兜底操作 将输出Uri写入输入Uri
+     * @param inputUri 输入Uri
+     * @param outputUri 输出Uri
+     * @throws NullPointerException 可能抛出空指针异常
+     * @throws IOException 可能抛出IO异常
+     */
     private void copyFile(@NonNull Uri inputUri, @Nullable Uri outputUri) throws NullPointerException, IOException {
         Log.d(TAG, "copyFile");
 
@@ -227,17 +267,25 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
 
             // swap uris, because input image was copied to the output destination
             // (cropped image will override it later)
+            // 将输出的Uri（从网络下载好的）赋值给输入Uri 裁剪图片会覆盖输出的Uri
             mInputUri = mOutputUri;
         }
     }
 
+    /**
+     * 下载文件
+     * @param inputUri 输入Uri
+     * @param outputUri 输出Uri
+     * @throws NullPointerException 可能抛出空指针异常
+     * @throws IOException 可能抛出IO异常
+     */
     private void downloadFile(@NonNull Uri inputUri, @Nullable Uri outputUri) throws NullPointerException, IOException {
         Log.d(TAG, "downloadFile");
 
         if (outputUri == null) {
             throw new NullPointerException("Output Uri is null - cannot download image");
         }
-
+        // 调用OkHttp下载
         OkHttpClient client = new OkHttpClient();
 
         BufferedSource source = null;
@@ -267,6 +315,7 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
 
             // swap uris, because input image was downloaded to the output destination
             // (cropped image will override it later)
+            // 将输出的Uri（从网络下载好的）赋值给输入Uri 裁剪图片会覆盖输出的Uri
             mInputUri = mOutputUri;
         }
     }
