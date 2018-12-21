@@ -7,11 +7,25 @@ import android.graphics.Bitmap;
  */
 public class CropParameters {
 
+    /**
+     * 结果图片最大尺寸X，结果图片最大尺寸
+     */
     private int mMaxResultImageSizeX, mMaxResultImageSizeY;
-
+    /**
+     * 压缩格式
+     */
     private Bitmap.CompressFormat mCompressFormat;
+    /**
+     * 压缩质量
+     */
     private int mCompressQuality;
+    /**
+     * 输入路径字符串，输入路径字符串
+     */
     private String mImageInputPath, mImageOutputPath;
+    /**
+     * 图像信息
+     */
     private ExifInfo mExifInfo;
 
 

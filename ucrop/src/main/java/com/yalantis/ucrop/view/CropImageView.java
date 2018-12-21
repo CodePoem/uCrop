@@ -28,28 +28,65 @@ import java.util.Arrays;
  * <p/>
  * This class adds crop feature, methods to draw crop guidelines, and keep image in correct state.
  * Also it extends parent class methods to add checks for scale; animating zoom in/out.
+ * 这个类完成裁剪、画裁剪框、保持图片在内容区等功能。
  */
 public class CropImageView extends TransformImageView {
 
+    /**
+     * 默认最大位图大小
+     */
     public static final int DEFAULT_MAX_BITMAP_SIZE = 0;
+    /**
+     * 默认图片适应内容边框大小动画持续时间
+     */
     public static final int DEFAULT_IMAGE_TO_CROP_BOUNDS_ANIM_DURATION = 500;
+    /**
+     * 默认最大缩放倍率
+     */
     public static final float DEFAULT_MAX_SCALE_MULTIPLIER = 10.0f;
+    /**
+     * 原始图片宽高比
+     */
     public static final float SOURCE_IMAGE_ASPECT_RATIO = 0f;
+    /**
+     * 默认宽高比
+     */
     public static final float DEFAULT_ASPECT_RATIO = SOURCE_IMAGE_ASPECT_RATIO;
-
+    /**
+     * 裁剪矩形
+     */
     private final RectF mCropRect = new RectF();
-
+    /**
+     * 临时矩阵
+     */
     private final Matrix mTempMatrix = new Matrix();
-
+    /**
+     * 目标宽高比
+     */
     private float mTargetAspectRatio;
+    /**
+     * 最大缩放倍率
+     */
     private float mMaxScaleMultiplier = DEFAULT_MAX_SCALE_MULTIPLIER;
-
+    /**
+     * 裁剪边框改变回调
+     */
     private CropBoundsChangeListener mCropBoundsChangeListener;
-
+    /**
+     * 适应裁剪边框Runnable，缩放图片Runnable
+     */
     private Runnable mWrapCropBoundsRunnable, mZoomImageToPositionRunnable = null;
-
+    /**
+     * 最大缩放，最小缩放
+     */
     private float mMaxScale, mMinScale;
+    /**
+     * 裁剪结果图片最大X,Y
+     */
     private int mMaxResultImageSizeX = 0, mMaxResultImageSizeY = 0;
+    /**
+     * 图片适应内容边框大小动画持续时间
+     */
     private long mImageToWrapCropBoundsAnimDuration = DEFAULT_IMAGE_TO_CROP_BOUNDS_ANIM_DURATION;
 
     public CropImageView(Context context) {
@@ -67,21 +104,27 @@ public class CropImageView extends TransformImageView {
     /**
      * Cancels all current animations and sets image to fill crop area (without animation).
      * Then creates and executes {@link BitmapCropTask} with proper parameters.
+     * 取消所有当前动画并设置图片来适应裁剪内容区域(不带动画)，然后创建并传递正确参数来执行裁剪任务BitmapCropTask
      */
     public void cropAndSaveImage(@NonNull Bitmap.CompressFormat compressFormat, int compressQuality,
                                  @Nullable BitmapCropCallback cropCallback) {
+        // 取消所有动画
         cancelAllAnimations();
+        // 设置图片适应裁剪内容区（不带动画）
         setImageToWrapCropBounds(false);
 
+        // 设置图像状态参数
         final ImageState imageState = new ImageState(
                 mCropRect, RectUtils.trapToRect(mCurrentImageCorners),
                 getCurrentScale(), getCurrentAngle());
 
+        // 设置裁剪压缩参数
         final CropParameters cropParameters = new CropParameters(
                 mMaxResultImageSizeX, mMaxResultImageSizeY,
                 compressFormat, compressQuality,
                 getImageInputPath(), getImageOutputPath(), getExifInfo());
 
+        // 异步执行位图裁剪任务
         new BitmapCropTask(getViewBitmap(), imageState, cropParameters, cropCallback).execute();
     }
 
@@ -109,6 +152,7 @@ public class CropImageView extends TransformImageView {
     /**
      * Updates current crop rectangle with given. Also recalculates image properties and position
      * to fit new crop rectangle.
+     * 根据给定的矩形更新当前的裁剪内容区域，同时重新计算图片属性和位置来适应新的裁剪内容区域。
      *
      * @param cropRect - new crop rectangle
      */
@@ -124,6 +168,8 @@ public class CropImageView extends TransformImageView {
      * This method sets aspect ratio for crop bounds.
      * If {@link #SOURCE_IMAGE_ASPECT_RATIO} value is passed - aspect ratio is calculated
      * based on current image width and height.
+     * 这个方法设置裁剪内容区域的宽高比。
+     * 如果传递了SOURCE_IMAGE_ASPECT_RATIO这个宽高比的值，宽高比会基于当前拖的宽和高来计算。
      *
      * @param targetAspectRatio - aspect ratio for image crop (e.g. 1.77(7) for 16:9)
      */
@@ -156,17 +202,19 @@ public class CropImageView extends TransformImageView {
 
     /**
      * This method sets maximum width for resulting cropped image
+     * 这个方法设置裁剪结果图片的最大宽度
      *
-     * @param maxResultImageSizeX - size in pixels
+     * @param maxResultImageSizeX - size in pixels 裁剪结果图片最大宽度像素尺寸
      */
     public void setMaxResultImageSizeX(@IntRange(from = 10) int maxResultImageSizeX) {
         mMaxResultImageSizeX = maxResultImageSizeX;
     }
 
     /**
-     * This method sets maximum width for resulting cropped image
+     * This method sets maximum height for resulting cropped image
+     * 裁剪结果图片最大高度像素尺寸
      *
-     * @param maxResultImageSizeY - size in pixels
+     * @param maxResultImageSizeY - size in pixels 裁剪结果图片最大高度像素尺寸
      */
     public void setMaxResultImageSizeY(@IntRange(from = 10) int maxResultImageSizeY) {
         mMaxResultImageSizeY = maxResultImageSizeY;
@@ -174,6 +222,7 @@ public class CropImageView extends TransformImageView {
 
     /**
      * This method sets animation duration for image to wrap the crop bounds
+     * 这个方法设置图片适应裁剪内容区域的动画持续时间
      *
      * @param imageToWrapCropBoundsAnimDuration - duration in milliseconds
      */
@@ -187,6 +236,7 @@ public class CropImageView extends TransformImageView {
 
     /**
      * This method sets multiplier that is used to calculate max image scale from min image scale.
+     * 这个方法设置缩放乘数用来表示做大缩放是最小缩放的多少倍
      *
      * @param maxScaleMultiplier - (minScale * maxScaleMultiplier) = maxScale
      */
@@ -196,6 +246,7 @@ public class CropImageView extends TransformImageView {
 
     /**
      * This method scales image down for given value related to image center.
+     * 这个方法以当前图片中心为缩放中心将图片缩小指定倍数
      */
     public void zoomOutImage(float deltaScale) {
         zoomOutImage(deltaScale, mCropRect.centerX(), mCropRect.centerY());
@@ -203,6 +254,7 @@ public class CropImageView extends TransformImageView {
 
     /**
      * This method scales image down for given value related given coords (x, y).
+     * 这个方法以给定的坐标为缩放中心将图片缩小指定倍数
      */
     public void zoomOutImage(float scale, float centerX, float centerY) {
         if (scale >= getMinScale()) {
@@ -212,6 +264,7 @@ public class CropImageView extends TransformImageView {
 
     /**
      * This method scales image up for given value related to image center.
+     * 这个方法以当前图片中心为缩放中心将图片放大指定倍数
      */
     public void zoomInImage(float deltaScale) {
         zoomInImage(deltaScale, mCropRect.centerX(), mCropRect.centerY());
@@ -219,6 +272,7 @@ public class CropImageView extends TransformImageView {
 
     /**
      * This method scales image up for given value related to given coords (x, y).
+     * 这个方法以给定的坐标为缩放中心将图片放大指定倍数
      */
     public void zoomInImage(float scale, float centerX, float centerY) {
         if (scale <= getMaxScale()) {
@@ -229,6 +283,7 @@ public class CropImageView extends TransformImageView {
     /**
      * This method changes image scale for given value related to point (px, py) but only if
      * resulting scale is in min/max bounds.
+     * 这个方法以给定的坐标为缩放中心将图片放大指定倍数，但是指定的倍数必须在最小缩放倍数和最大缩放倍数之间
      *
      * @param deltaScale - scale value
      * @param px         - scale center X
@@ -244,6 +299,7 @@ public class CropImageView extends TransformImageView {
 
     /**
      * This method rotates image for given angle related to the image center.
+     * 这个方法以当前图片中心为缩放中心将图片旋转指定角度
      *
      * @param deltaAngle - angle to rotate
      */
@@ -253,12 +309,16 @@ public class CropImageView extends TransformImageView {
 
     /**
      * This method cancels all current Runnable objects that represent animations.
+     * 这个方法取消所有当前展示动画的Runnable对象
      */
     public void cancelAllAnimations() {
         removeCallbacks(mWrapCropBoundsRunnable);
         removeCallbacks(mZoomImageToPositionRunnable);
     }
 
+    /**
+     * 设置图片去适应裁剪内容区域
+     */
     public void setImageToWrapCropBounds() {
         setImageToWrapCropBounds(true);
     }
@@ -270,14 +330,19 @@ public class CropImageView extends TransformImageView {
      * {@link WrapCropBoundsRunnable} which animates image.
      * Scale value must be calculated only if image won't fill the crop bounds after it's translated to the
      * crop bounds rectangle center. Using temporary variables this method checks this case.
+     * 如果图片没有适应裁剪内容区域，它不许被正确的平移、缩放去适应。
+     * 因此这个方法计算delta X，delta Y 和 delta 缩放值并且通过这些值去执行适应裁剪内容区域动画WrapCropBoundsRunnable
+     * 缩放值只有在图片被平移到裁剪内容区域中心之后还不能适应裁剪内容区域的情况下才被计算。适应临时变量去完成这种情况。
      */
     public void setImageToWrapCropBounds(boolean animate) {
+        // 如果图片onLayout完成且图片尚未适应裁剪内容区域
         if (mBitmapLaidOut && !isImageWrapCropBounds()) {
 
             float currentX = mCurrentImageCenter[0];
             float currentY = mCurrentImageCenter[1];
             float currentScale = getCurrentScale();
 
+            // deltaX deltaY 为裁剪内容矩形区域中心坐标减去当前图片中心坐标
             float deltaX = mCropRect.centerX() - currentX;
             float deltaY = mCropRect.centerY() - currentY;
             float deltaScale = 0;
@@ -286,8 +351,10 @@ public class CropImageView extends TransformImageView {
             mTempMatrix.setTranslate(deltaX, deltaY);
 
             final float[] tempCurrentImageCorners = Arrays.copyOf(mCurrentImageCorners, mCurrentImageCorners.length);
+            // 获取当前图片平移回去的坐标数组
             mTempMatrix.mapPoints(tempCurrentImageCorners);
 
+            // 判断平移回去的图片是否适宜裁剪内容区域
             boolean willImageWrapCropBoundsAfterTranslate = isImageWrapCropBounds(tempCurrentImageCorners);
 
             if (willImageWrapCropBoundsAfterTranslate) {
@@ -325,6 +392,10 @@ public class CropImageView extends TransformImageView {
      * Second, calculate deltas between those rectangles sides.
      * Third, depending on delta (its sign) put them or zero inside an array.
      * Fourth, using Matrix, rotate back those points (indents).
+     * 首先将图片矩形和裁剪矩形 旋转回图片的矩形的旋转角度（使图片矩形轴对齐）
+     * 第二，计算这些矩形四边的差值
+     * 第三，根据差值构造数组
+     * 第四，使用矩阵旋转回这些点
      *
      * @return - the float array of image indents (4 floats) - in this order [left, top, right, bottom]
      */
@@ -401,6 +472,7 @@ public class CropImageView extends TransformImageView {
 
     /**
      * This method checks whether current image fills the crop bounds.
+     * 找个方法检查当前图片是否适应裁剪内容区域
      */
     protected boolean isImageWrapCropBounds() {
         return isImageWrapCropBounds(mCurrentImageCorners);
@@ -409,12 +481,14 @@ public class CropImageView extends TransformImageView {
     /**
      * This methods checks whether a rectangle that is represented as 4 corner points (8 floats)
      * fills the crop bounds rectangle.
+     * 找个方法检查给定的矩形（传入的4个点 8个floats值）是否适应裁剪内容区域
      *
      * @param imageCorners - corners of a rectangle
      * @return - true if it wraps crop bounds, false - otherwise
      */
     protected boolean isImageWrapCropBounds(float[] imageCorners) {
         mTempMatrix.reset();
+        // 将当前图片旋转回去
         mTempMatrix.setRotate(-getCurrentAngle());
 
         float[] unrotatedImageCorners = Arrays.copyOf(imageCorners, imageCorners.length);
@@ -423,6 +497,7 @@ public class CropImageView extends TransformImageView {
         float[] unrotatedCropBoundsCorners = RectUtils.getCornersFromRect(mCropRect);
         mTempMatrix.mapPoints(unrotatedCropBoundsCorners);
 
+        // 判断处理过的图片矩形区域是否包含处理过的裁剪内容矩形区域
         return RectUtils.trapToRect(unrotatedImageCorners).contains(RectUtils.trapToRect(unrotatedCropBoundsCorners));
     }
 
@@ -446,6 +521,9 @@ public class CropImageView extends TransformImageView {
                 durationMs, oldScale, deltaScale, centerX, centerY));
     }
 
+    /**
+     * 计算图片缩放边界
+     */
     private void calculateImageScaleBounds() {
         final Drawable drawable = getDrawable();
         if (drawable == null) {
@@ -456,9 +534,10 @@ public class CropImageView extends TransformImageView {
 
     /**
      * This method calculates image minimum and maximum scale values for current {@link #mCropRect}.
+     * 计算对于当前裁剪内容区域mCropRect，图片的最小和最大缩放值
      *
-     * @param drawableWidth  - image width
-     * @param drawableHeight - image height
+     * @param drawableWidth  - image width 图片宽度
+     * @param drawableHeight - image height 图片高度
      */
     private void calculateImageScaleBounds(float drawableWidth, float drawableHeight) {
         float widthScale = Math.min(mCropRect.width() / drawableWidth, mCropRect.width() / drawableHeight);
