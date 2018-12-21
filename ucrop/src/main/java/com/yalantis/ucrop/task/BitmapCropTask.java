@@ -31,25 +31,64 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Throwable> {
 
     private static final String TAG = "BitmapCropTask";
 
+    /**
+     * 加载C/C++ Library
+     */
     static {
         System.loadLibrary("ucrop");
     }
 
+    /**
+     * 视图位图
+     */
     private Bitmap mViewBitmap;
 
+    /**
+     * 裁剪矩形
+     */
     private final RectF mCropRect;
+    /**
+     * 当前图片矩形
+     */
     private final RectF mCurrentImageRect;
 
+    /**
+     * 当前缩放比例，当前旋转角度
+     */
     private float mCurrentScale, mCurrentAngle;
+    /**
+     * 结果图片最大尺寸X，结果图片最大尺寸Y
+     */
     private final int mMaxResultImageSizeX, mMaxResultImageSizeY;
 
+    /**
+     * 压缩格式
+     */
     private final Bitmap.CompressFormat mCompressFormat;
+    /**
+     * 压缩质量
+     */
     private final int mCompressQuality;
+    /**
+     * 图片输入路径字符串，图片输出路径字符串
+     */
     private final String mImageInputPath, mImageOutputPath;
+    /**
+     * 图像信息
+     */
     private final ExifInfo mExifInfo;
+    /**
+     * 位图裁剪回调
+     */
     private final BitmapCropCallback mCropCallback;
 
+    /**
+     * 裁剪图片宽，高
+     */
     private int mCroppedImageWidth, mCroppedImageHeight;
+    /**
+     * 裁剪偏移量X，Y
+     */
     private int cropOffsetX, cropOffsetY;
 
     public BitmapCropTask(@Nullable Bitmap viewBitmap, @NonNull ImageState imageState, @NonNull CropParameters cropParameters,
@@ -97,12 +136,19 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Throwable> {
         return null;
     }
 
+    /**
+     * 调整大小
+     * @return 调整大小后的缩放比例
+     */
     private float resize() {
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(mImageInputPath, options);
 
+        // 是否交换了对边 即原来水平变竖直 原来竖直变水平
         boolean swapSides = mExifInfo.getExifDegrees() == 90 || mExifInfo.getExifDegrees() == 270;
+
+        // 计算原图和当前视图位图的缩放比例（考虑交换了对边的情况）
         float scaleX = (swapSides ? options.outHeight : options.outWidth) / (float) mViewBitmap.getWidth();
         float scaleY = (swapSides ? options.outWidth : options.outHeight) / (float) mViewBitmap.getHeight();
 
@@ -110,11 +156,13 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Throwable> {
 
         mCurrentScale /= resizeScale;
 
+        // 如果设置了结果图片最大尺寸X或者结果图片最大尺寸Y的需要再做对应的判断
         resizeScale = 1;
         if (mMaxResultImageSizeX > 0 && mMaxResultImageSizeY > 0) {
             float cropWidth = mCropRect.width() / mCurrentScale;
             float cropHeight = mCropRect.height() / mCurrentScale;
 
+            // 如果裁剪后的尺寸大于设置的图片最大尺寸 需要再做缩放
             if (cropWidth > mMaxResultImageSizeX || cropHeight > mMaxResultImageSizeY) {
 
                 scaleX = mMaxResultImageSizeX / cropWidth;
@@ -127,6 +175,12 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Throwable> {
         return resizeScale;
     }
 
+    /**
+     * 裁剪
+     * @param resizeScale 调整大小后的缩放比例
+     * @return 是否裁剪成功
+     * @throws IOException 可能抛出IO异常
+     */
     private boolean crop(float resizeScale) throws IOException {
         ExifInterface originalExif = new ExifInterface(mImageInputPath);
 
@@ -156,13 +210,16 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Throwable> {
     /**
      * Check whether an image should be cropped at all or just file can be copied to the destination path.
      * For each 1000 pixels there is one pixel of error due to matrix calculations etc.
+     * 检查是否一张图片是应该被裁剪还是只是需要将文件拷贝给目标输出路径。
+     * 对于每1000像素允许有1像素的矩阵计算错误等。
      *
-     * @param width  - crop area width
-     * @param height - crop area height
+     * @param width  - crop area width 裁剪区域宽度
+     * @param height - crop area height 裁剪区域高度
      * @return - true if image must be cropped, false - if original image fits requirements
      */
     private boolean shouldCrop(int width, int height) {
         int pixelError = 1;
+        // 对于每1000像素允许有1像素的矩阵计算错误
         pixelError += Math.round(Math.max(width, height) / 1000f);
         return (mMaxResultImageSizeX > 0 && mMaxResultImageSizeY > 0)
                 || Math.abs(mCropRect.left - mCurrentImageRect.left) > pixelError
