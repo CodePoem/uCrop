@@ -13,15 +13,36 @@ import com.yalantis.ucrop.util.RotationGestureDetector;
  */
 public class GestureCropImageView extends CropImageView {
 
+    /**
+     * 双击放大动画持续时间
+     */
     private static final int DOUBLE_TAP_ZOOM_DURATION = 200;
 
+    /**
+     * 缩放手势探测器
+     */
     private ScaleGestureDetector mScaleDetector;
+    /**
+     * 旋转手势探测器
+     */
     private RotationGestureDetector mRotateDetector;
+    /**
+     * 手势探测器
+     */
     private GestureDetector mGestureDetector;
 
+    /**
+     * 双指触摸点直线中点坐标X,Y
+     */
     private float mMidPntX, mMidPntY;
 
+    /**
+     * 是否可旋转，是否可缩放
+     */
     private boolean mIsRotateEnabled = true, mIsScaleEnabled = true;
+    /**
+     * 双击放大步数（从最小放大倍率到最大放大倍率）
+     */
     private int mDoubleTapScaleSteps = 5;
 
     public GestureCropImageView(Context context) {
@@ -105,9 +126,13 @@ public class GestureCropImageView extends CropImageView {
      * to the max scale value with {@link #mDoubleTapScaleSteps} double taps.
      */
     protected float getDoubleTapTargetScale() {
+        // 双击放大步数（从最小放大倍率到最大放大倍率）
         return getCurrentScale() * (float) Math.pow(getMaxScale() / getMinScale(), 1.0f / mDoubleTapScaleSteps);
     }
 
+    /**
+     * 设置手势监听器
+     */
     private void setupGestureListeners() {
         mGestureDetector = new GestureDetector(getContext(), new GestureListener(), null, true);
         mScaleDetector = new ScaleGestureDetector(getContext(), new ScaleListener());
